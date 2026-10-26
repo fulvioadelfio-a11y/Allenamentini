@@ -1,7 +1,7 @@
-"""Crea un sito (pagina HTML) con i tuoi allenamenti Garmin e quelli in programma.
+"""Allenamentini: crea un sito con i tuoi allenamenti Garmin e quelli in programma.
 
 Uso:  py garmin_sito.py
-Il sito viene salvato in  %USERPROFILE%\\GarminSito\\index.html  e aperto nel browser.
+Il sito viene salvato in  %USERPROFILE%\\Allenamentini\\index.html  e aperto nel browser.
 Rilancia lo script quando vuoi aggiornare i dati.
 """
 
@@ -18,7 +18,7 @@ from garminconnect import (
 )
 
 TOKENSTORE = str(Path("~/.garminconnect").expanduser())
-CARTELLA = Path.home() / "GarminSito"
+CARTELLA = Path.home() / "Allenamentini"
 SETTIMANE_PASSATE = 12
 GIORNI_FUTURI = 42
 
@@ -257,7 +257,7 @@ MODELLO = r'''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>I miei allenamenti</title>
+<title>Allenamentini</title>
 <style>
 :root {
   color-scheme: light;
@@ -374,7 +374,7 @@ footer { color: var(--muted); font-size: 12.5px; margin-top: 22px; text-align: c
 <div class="wrap">
   <header>
     <div>
-      <h1 id="titolo">I miei allenamenti</h1>
+      <h1>Allenamentini</h1>
       <div class="sub" id="aggiornato"></div>
     </div>
     <button class="theme-btn" id="tema" type="button">Tema chiaro/scuro</button>
@@ -465,8 +465,7 @@ const ATT = [...DATI.attivita].sort((a, b) => b.data.localeCompare(a.data));
 const PROG = DATI.programmati || [];
 
 // ------------------------------------------------------------ intestazione
-$("titolo").textContent = DATI.nome ? `Allenamenti di ${DATI.nome.split(" ")[0]}` : "I miei allenamenti";
-$("aggiornato").textContent = `Aggiornato il ${DATI.generato}`;
+$("aggiornato").textContent = `${DATI.nome ? `di ${DATI.nome.split(" ")[0]} · ` : ""}Aggiornato il ${DATI.generato}`;
 
 // ------------------------------------------------------------ prossimo allenamento
 (() => {
@@ -501,7 +500,7 @@ $("aggiornato").textContent = `Aggiornato il ${DATI.generato}`;
   const p = (DATI.piani || [])[0];
   const prossimi7 = PROG.filter((x) => giorniTra(OGGI, d(x.data)) < 7);
   if (!p) {
-    $("piano").innerHTML = `<div class="label">Prossimi 7 giorni</div><div class="big" style="margin-top:8px">${prossimi7.length}</div><div class="meta">allenamenti in programma · ${durata(prossimi7.reduce((s, x) => s + (x.sec || 0), 0))}</div>`;
+    $("piano").innerHTML = `<div class="label">Prossimi 7 giorni</div><div class="big" style="margin-top:8px">${prossimi7.length}</div><div class="meta">${prossimi7.length === 1 ? "allenamento" : "allenamenti"} in programma · ${durata(prossimi7.reduce((s, x) => s + (x.sec || 0), 0))}</div>`;
     return;
   }
   let pct = null, sett = "";

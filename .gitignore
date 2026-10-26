@@ -1,6 +1,6 @@
 # Dati personali e credenziali: non vanno mai nel repository
 dati.json
-GarminSito/
+Allenamentini/
 .garminconnect/
 garmin_tokens.json
 *.env

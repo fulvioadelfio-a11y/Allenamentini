@@ -1,4 +1,4 @@
-# Garmin Dashboard
+# Allenamentini
 
 Dashboard personale degli allenamenti, generata dai dati di Garmin Connect con la libreria
 [python-garminconnect](https://github.com/cyberjunky/python-garminconnect).
@@ -7,7 +7,7 @@ Dashboard personale degli allenamenti, generata dai dati di Garmin Connect con l
 
 | File | Cosa fa |
 |---|---|
-| `garmin_sito.py` | Scarica attività, allenamenti in programma, piano, gara obiettivo e metriche di forma, poi crea il sito in `%USERPROFILE%\GarminSito\index.html` e lo apre nel browser. |
+| `garmin_sito.py` | Scarica attività, allenamenti in programma, piano, gara obiettivo e metriche di forma, poi crea il sito in `%USERPROFILE%\Allenamentini\index.html` e lo apre nel browser. |
 | `garmin_oggi.py` | Riepilogo veloce della giornata nel terminale (passi, calorie, distanza, FC a riposo). |
 
 ## Installazione (Windows)
