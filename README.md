@@ -25,3 +25,25 @@ in `%USERPROFILE%\.garminconnect` e riutilizzati dopo. Rilancia lo script per ag
 
 Nel repository non ci sono dati personali né credenziali: `dati.json`, la cartella del sito
 generato e i token sono esclusi da `.gitignore`.
+
+## Sito online sempre aggiornato
+
+Il workflow `.github/workflows/aggiorna.yml` gira su GitHub Actions ogni 3 ore (e a richiesta
+da *Actions → Aggiorna Allenamentini → Run workflow*): scarica i dati, pubblica la dashboard su
+GitHub Pages e salva `dati.json` sul ramo `dati`.
+
+Indirizzo: <https://fulvioadelfio-a11y.github.io/Allenamentini/>
+
+Configurazione (una volta sola):
+
+1. *Settings → Secrets and variables → Actions → New repository secret*: nome `GARMINTOKENS`,
+   valore = contenuto di `%USERPROFILE%\.garminconnect\garmin_tokens.json`.
+2. *Settings → Pages → Source*: **GitHub Actions**.
+3. *Actions → Aggiorna Allenamentini → Run workflow* per il primo aggiornamento.
+
+Garmin rinnova i token a ogni accesso; il workflow conserva l'ultima versione, cifrata, nella
+cache di Actions. Se l'aggiornamento fallisce con "Token Garmin non validi", rilancia
+`garmin_sito.py` sul PC e copia di nuovo `garmin_tokens.json` nel secret.
+
+Attenzione: con GitHub Pages gratuito il repository deve essere pubblico, quindi la dashboard
+e `dati.json` sono visibili a chiunque abbia il link.

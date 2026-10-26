@@ -3,9 +3,14 @@
 Uso:  py garmin_sito.py
 Il sito viene salvato in  %USERPROFILE%\\Allenamentini\\index.html  e aperto nel browser.
 Rilancia lo script quando vuoi aggiornare i dati.
+
+Su GitHub Actions (variabile CI) gira senza domande: legge i token dalla cartella
+indicata in GARMIN_TOKENSTORE e salva il sito in ALLENAMENTINI_OUT.
 """
 
 import json
+import os
+import sys
 import webbrowser
 from datetime import date, datetime, timedelta
 from getpass import getpass
@@ -17,8 +22,9 @@ from garminconnect import (
     GarminConnectConnectionError,
 )
 
-TOKENSTORE = str(Path("~/.garminconnect").expanduser())
-CARTELLA = Path.home() / "Allenamentini"
+TOKENSTORE = str(Path(os.getenv("GARMIN_TOKENSTORE", "~/.garminconnect")).expanduser())
+CARTELLA = Path(os.getenv("ALLENAMENTINI_OUT") or Path.home() / "Allenamentini")
+AUTOMATICO = bool(os.getenv("CI"))
 SETTIMANE_PASSATE = 12
 GIORNI_FUTURI = 42
 
@@ -30,7 +36,9 @@ def accedi() -> Garmin:
         garmin = Garmin()
         garmin.login(TOKENSTORE)
         return garmin
-    except (GarminConnectAuthenticationError, GarminConnectConnectionError):
+    except (GarminConnectAuthenticationError, GarminConnectConnectionError) as err:
+        if AUTOMATICO:
+            sys.exit(f"Token Garmin non validi o scaduti ({type(err).__name__}): aggiorna il secret GARMINTOKENS.")
         print("Primo accesso: inserisci le credenziali Garmin Connect.")
     garmin = Garmin(
         email=input("Email: ").strip(),
@@ -239,7 +247,7 @@ def main() -> None:
         "forma": forma(garmin, oggi.isoformat()),
     }
 
-    CARTELLA.mkdir(exist_ok=True)
+    CARTELLA.mkdir(parents=True, exist_ok=True)
     (CARTELLA / "dati.json").write_text(json.dumps(dati, ensure_ascii=False, indent=2), encoding="utf-8")
     pagina = MODELLO.replace("/*__DATI__*/null", json.dumps(dati, ensure_ascii=False).replace("</", "<\\/"))
     destinazione = CARTELLA / "index.html"
@@ -247,7 +255,8 @@ def main() -> None:
 
     print(f"\n{len(dati['attivita'])} attività, {len(dati['programmati'])} allenamenti in programma.")
     print(f"Sito creato: {destinazione}")
-    webbrowser.open(destinazione.resolve().as_uri())
+    if not AUTOMATICO:
+        webbrowser.open(destinazione.resolve().as_uri())
 
 
 # ---------------------------------------------------------------- pagina
@@ -420,7 +429,7 @@ footer { color: var(--muted); font-size: 12.5px; margin-top: 22px; text-align: c
     <div class="table-wrap"><table id="tabella"></table></div>
   </section>
 
-  <footer>Dati da Garmin Connect · rilancia <code>garmin_sito.py</code> per aggiornare</footer>
+  <footer>Allenamentini · dati da Garmin Connect</footer>
 </div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
