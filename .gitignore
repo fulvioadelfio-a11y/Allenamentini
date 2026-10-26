@@ -1,0 +1,7 @@
+# Dati personali e credenziali: non vanno mai nel repository
+dati.json
+GarminSito/
+.garminconnect/
+garmin_tokens.json
+*.env
+__pycache__/
