@@ -16,6 +16,8 @@ Dashboard personale degli allenamenti, generata dai dati di Garmin Connect con l
 2. Nel terminale: `py -m pip install garminconnect`
 3. Avvia: `py garmin_sito.py`
 
+In alternativa, fai doppio clic su `Aggiorna_Allenamentini.bat` (deve stare nella stessa cartella di `garmin_sito.py`).
+
 Al primo avvio vengono chiesti email, password ed eventuale codice MFA; i token vengono salvati
 in `%USERPROFILE%\.garminconnect` e riutilizzati dopo. Rilancia lo script per aggiornare i dati.
 
