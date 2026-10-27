@@ -204,7 +204,7 @@ footer { color: var(--muted); font-size: 12.5px; margin-top: 26px; text-align: c
 
   <div class="section-title">Piano</div>
   <section class="grid plan">
-    <div class="card"><h2>In programma</h2><div class="hint">Questa settimana e le prossime due</div><div id="programma" style="margin-top:8px"></div></div>
+    <div class="card"><h2>In programma</h2><div class="hint" id="hint-programma">Questa settimana e le prossime due</div><div id="programma" style="margin-top:8px"></div></div>
     <div class="card">
       <h2>Ultime 4 settimane per sport</h2>
       <div id="sport" style="margin-top:8px"></div>
@@ -304,6 +304,8 @@ const SETTIMANE = (() => {
   return out;
 })();
 const PASSATE = SETTIMANE.filter((s) => !s.futura);
+// la giornata di oggi è ancora in corso: stress e passi sarebbero parziali
+const RECUPERO = (DATI.recupero || []).filter((g) => g.data < DATI.oggi);
 
 // ============================================================ anelli della settimana
 (() => {
@@ -382,10 +384,8 @@ const PASSATE = SETTIMANE.filter((s) => !s.futura);
     const tot = giorniTra(d(p.inizio), d(p.fine)), fatto = giorniTra(d(p.inizio), OGGI);
     const pct = Math.max(0, Math.min(100, Math.round((fatto / tot) * 100)));
     const settTot = p.settimane || Math.ceil(tot / 7);
-    const passate = SEDUTE.filter((x) => x.data < DATI.oggi && x.fatto != null);
-    const aderenza = passate.length ? Math.round((passate.filter((x) => x.fatto).length / passate.length) * 100) : null;
     html += `<div class="bar-track" role="img" aria-label="Piano completato al ${pct}%"><div class="bar-fill" style="width:${pct}%"></div></div>
-      <div class="meta" style="margin-top:6px">Settimana <b>${Math.min(settTot, Math.floor(fatto / 7) + 1)}</b> di ${settTot} del piano${aderenza != null ? ` · <b style="color:var(--${aderenza >= 80 ? "pos" : aderenza >= 60 ? "warn" : "neg"})">${aderenza}%</b> sedute completate` : ""}</div>`;
+      <div class="meta" style="margin-top:6px">Settimana <b>${Math.min(settTot, Math.floor(fatto / 7) + 1)}</b> di ${settTot} del piano · fine ${dataBreve(p.fine)}</div>`;
   }
   $("gara").innerHTML = html;
 })();
@@ -553,7 +553,7 @@ function disegnaTutto() {
   linea("c-vo2", VO2, { fmt: (v) => `VO2max ${num(v)}`, col: "var(--ring2)", giorni: true });
   linea("c-mezza", MEZZA, { fmt: (v) => orologio(v), col: "var(--ring1)", giorni: true });
   linea("c-eff", EFF, { fmt: (v) => `${num(v, 2)} m/battito`, col: "var(--ring3)" });
-  const R = (DATI.recupero || []).map((g) => ({ ...g, t: d(g.data) }));
+  const R = RECUPERO.map((g) => ({ ...g, t: d(g.data) }));
   linea("c-riposo", R.filter((g) => g.riposo).map((g) => [g.t, g.riposo]), { fmt: (v) => `${v} bpm`, col: "var(--ring1)", h: 120, giorni: true });
   linea("c-bb", R.filter((g) => g.bb).map((g) => [g.t, g.bb]), { fmt: (v) => `Body Battery max ${v}`, col: "var(--ring2)", h: 120, giorni: true });
   linea("c-stress", R.filter((g) => g.stress != null).map((g) => [g.t, g.stress]), { fmt: (v) => `Stress medio ${v}`, col: "var(--ring3)", h: 120, giorni: true });
@@ -567,7 +567,7 @@ intestazione("h-mezza", "Tempo previsto sulla mezza", orologio(MEZZA.at(-1)?.[1]
 intestazione("h-eff", "Efficienza corse facili", `${num(EFF.at(-1)?.[1], 2)}`, variazione(variazione4sett(EFF), true, (v) => num(v, 2), "4 sett."), "Metri percorsi per battito cardiaco");
 
 (() => {
-  const R = DATI.recupero || [];
+  const R = RECUPERO;
   if (!R.length) { $("sez-recupero").style.display = "none"; return; }
   const sett = (k, a, b) => media(R.slice(a, b).map((g) => g[k]).filter((v) => v != null));
   const blocco = (id, titolo, k, meglioSeSale, unita, hint) => {
@@ -611,6 +611,7 @@ disegnaTutto();
     html += `</div>`;
   }
   $("programma").innerHTML = html;
+  if (gruppi.size === 1) $("hint-programma").textContent = "Garmin Coach pianifica una settimana alla volta";
 })();
 
 // ============================================================ sport + previsioni
