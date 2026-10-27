@@ -59,6 +59,8 @@ jobs:
           rm -f token.enc
 
       - name: Scarica i dati e crea il sito
+        env:
+          GARMIN_PERSONAL_API_KEY: ${{ secrets.GARMIN_PERSONAL_API_KEY }}
         run: python garmin_sito.py
 
       - name: Cifra i token rinnovati

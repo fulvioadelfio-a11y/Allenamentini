@@ -8,6 +8,7 @@ Dashboard personale degli allenamenti, generata dai dati di Garmin Connect con l
 | File | Cosa fa |
 |---|---|
 | `garmin_sito.py` | Scarica attività, allenamenti in programma, piano, gara obiettivo e metriche di forma, poi crea il sito in `%USERPROFILE%\Allenamentini\index.html` e lo apre nel browser. |
+| `allenamentini.html` | Modello della pagina: `garmin_sito.py` lo riempie con i dati (deve stare nella stessa cartella). |
 | `garmin_oggi.py` | Riepilogo veloce della giornata nel terminale (passi, calorie, distanza, FC a riposo). |
 
 ## Installazione (Windows)
@@ -38,8 +39,10 @@ Configurazione (una volta sola):
 
 1. *Settings → Secrets and variables → Actions → New repository secret*: nome `GARMINTOKENS`,
    valore = contenuto di `%USERPROFILE%\.garminconnect\garmin_tokens.json`.
-2. *Settings → Pages → Source*: **GitHub Actions**.
-3. *Actions → Aggiorna Allenamentini → Run workflow* per il primo aggiornamento.
+2. (Facoltativo) secret `GARMIN_PERSONAL_API_KEY` con la chiave della Garmin Personal API ufficiale:
+   abilita la sezione Recupero (FC a riposo, Body Battery, stress).
+3. *Settings → Pages → Source*: **GitHub Actions**.
+4. *Actions → Aggiorna Allenamentini → Run workflow* per il primo aggiornamento.
 
 Garmin rinnova i token a ogni accesso; il workflow conserva l'ultima versione, cifrata, nella
 cache di Actions. Se l'aggiornamento fallisce con "Token Garmin non validi", rilancia
