@@ -1,0 +1,35 @@
+name: Prova Personal API
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # salva il resoconto sul ramo "prova-personal-api"
+
+jobs:
+  prova:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Rome
+      ALLENAMENTINI_OUT: ${{ github.workspace }}/../prova
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - run: pip install requests
+
+      - name: Interroga la Personal API
+        env:
+          GARMIN_PERSONAL_API_KEY: ${{ secrets.GARMIN_PERSONAL_API_KEY }}
+        run: python prova_personal_api.py
+
+      - name: Salva il resoconto
+        run: |
+          cd "$ALLENAMENTINI_OUT"
+          git init -q -b prova-personal-api
+          git add personal_api.json
+          git -c user.name="Allenamentini" -c user.email="actions@users.noreply.github.com" commit -q -m "Prova Personal API $(date '+%d/%m/%Y %H:%M')"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" prova-personal-api

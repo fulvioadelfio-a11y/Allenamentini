@@ -5,3 +5,4 @@ Allenamentini/
 garmin_tokens.json
 *.env
 __pycache__/
+.env
