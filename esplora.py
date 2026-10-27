@@ -49,6 +49,17 @@ def main() -> None:
     prova("sonno (non uff.)", g.get_sleep_data, d(1))
     prova("hrv (non uff.)", g.get_hrv_data, d(1))
     cal = g.get_scheduled_workouts(oggi.year, oggi.month) or {}
+    adattivi = [i for i in cal.get("calendarItems", []) if i.get("itemType") == "fbtAdaptiveWorkout"]
+    if adattivi:
+        piano = adattivi[0].get("trainingPlanId")
+        prova("piano adattivo dettaglio", g.get_adaptive_training_plan_by_id, piano)
+        uuid = adattivi[-1].get("workoutUuid")
+        for percorso in (
+            f"/workout-service/fbt-adaptive/{uuid}",
+            f"/workout-service/workout/FBT_ADAPTIVE/{uuid}",
+            f"/workout-service/workout/{uuid}",
+        ):
+            prova(f"GET {percorso}", g.connectapi, percorso)
     wid = next((i.get("workoutId") for i in cal.get("calendarItems", []) if i.get("itemType") == "workout" and i.get("workoutId")), None)
     if wid:
         prova("dettaglio allenamento", g.get_workout_by_id, wid)
