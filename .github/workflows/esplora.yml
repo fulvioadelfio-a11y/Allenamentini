@@ -1,0 +1,59 @@
+name: Esplora dati
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aggiorna   # stessi token di "Aggiorna Allenamentini": mai in parallelo
+
+jobs:
+  esplora:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Rome
+      GARMIN_TOKENSTORE: ${{ github.workspace }}/../garmin-tokens
+      ALLENAMENTINI_OUT: ${{ github.workspace }}/../esplora
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install garminconnect
+      - uses: actions/cache/restore@v4
+        with:
+          path: token.enc
+          key: garmin-token-${{ github.run_id }}
+          restore-keys: garmin-token-
+      - name: Prepara i token
+        env:
+          GARMINTOKENS: ${{ secrets.GARMINTOKENS }}
+        run: |
+          mkdir -p "$GARMIN_TOKENSTORE" && chmod 700 "$GARMIN_TOKENSTORE"
+          if [ -f token.enc ] && openssl enc -d -aes-256-cbc -pbkdf2 -pass env:GARMINTOKENS -in token.enc -out "$GARMIN_TOKENSTORE/garmin_tokens.json" 2>/dev/null; then :; else
+            printf '%s' "$GARMINTOKENS" > "$GARMIN_TOKENSTORE/garmin_tokens.json"; fi
+          rm -f token.enc
+      - name: Esplora
+        env:
+          GARMIN_PERSONAL_API_KEY: ${{ secrets.GARMIN_PERSONAL_API_KEY }}
+        run: python esplora.py
+      - name: Cifra i token rinnovati
+        if: always()
+        env:
+          GARMINTOKENS: ${{ secrets.GARMINTOKENS }}
+        run: |
+          [ -f "$GARMIN_TOKENSTORE/garmin_tokens.json" ] && openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:GARMINTOKENS -in "$GARMIN_TOKENSTORE/garmin_tokens.json" -out token.enc
+          rm -rf "$GARMIN_TOKENSTORE"
+      - if: always() && hashFiles('token.enc') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: token.enc
+          key: garmin-token-${{ github.run_id }}
+      - name: Salva il resoconto
+        run: |
+          cd "$ALLENAMENTINI_OUT"
+          git init -q -b esplora && git add esplora.json
+          git -c user.name="Allenamentini" -c user.email="actions@users.noreply.github.com" commit -q -m "Esplorazione $(date '+%d/%m/%Y %H:%M')"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" esplora
