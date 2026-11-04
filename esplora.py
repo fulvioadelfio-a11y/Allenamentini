@@ -64,6 +64,19 @@ def main() -> None:
     if wid:
         prova("dettaglio allenamento", g.get_workout_by_id, wid)
 
+    # giri dell'ultima attività (non accorciati) e gara principale grezza
+    try:
+        ultima = (g.get_activities(0, 1) or [{}])[0]
+        giri = (g.get_activity_splits(ultima["activityId"]) or {}).get("lapDTOs") or []
+        risultati["ultima attivita"] = {
+            "nome": ultima.get("activityName"), "data": ultima.get("startTimeLocal"),
+            "giri": [{k: l.get(k) for k in ("lapIndex", "distance", "duration", "averageSpeed", "averageHR", "maxHR", "intensityType")} for l in giri],
+        }
+        print("ok  ultima attivita")
+    except Exception as err:  # noqa: BLE001
+        risultati["ultima attivita"] = {"errore": f"{type(err).__name__}: {str(err)[:200]}"}
+    prova("gara principale", g.get_primary_event)
+
     chiave = os.getenv("GARMIN_PERSONAL_API_KEY")
     if chiave:
         t = requests.post(BASE + TOKEN_PATH, headers={"Authorization": f"ApiKey {chiave}"}, timeout=30).text.strip()
