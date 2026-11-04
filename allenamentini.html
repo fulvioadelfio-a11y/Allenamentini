@@ -376,7 +376,7 @@ const RECUPERO = (DATI.recupero || []).filter((g) => g.data < DATI.oggi);
     const gg = giorniTra(OGGI, d(g.data));
     html += `<div class="label">Gara obiettivo</div>
       <div class="big" style="margin-top:8px">${gg >= 0 ? gg : "–"} <small>giorni</small></div>
-      <div class="meta" style="margin-top:4px"><b style="color:var(--text)">${esc(g.nome)}</b><br>${dataBreve(g.data)} ${d(g.data).getFullYear()}${g.km ? ` · ${num(g.km)} km` : ""}</div>`;
+      <div class="meta" style="margin-top:4px"><b style="color:var(--text)">${esc(g.nome)}</b><br>${dataBreve(g.data)} ${d(g.data).getFullYear()}${g.km ? ` · ${num(g.km)} km` : ""}${g.obiettivo ? ` · obiettivo <b style="color:var(--text)">${orologio(g.obiettivo)}</b>` : ""}</div>`;
   } else {
     html += `<div class="label">Gara obiettivo</div><div class="mid" style="margin-top:8px">Nessuna gara</div><div class="meta">Aggiungi una gara al calendario Garmin per il conto alla rovescia.</div>`;
   }

@@ -209,12 +209,23 @@ def gara(garmin):
         evento = prossimi[0] if isinstance(prossimi, list) and prossimi else None
     if not isinstance(evento, dict):
         return None
-    distanza = numero(primo(evento, "eventCustomization.customGoal.distance", "completionTarget.value", "distance"))
+    nome = primo(evento, "eventName", "title", "name") or "Gara"
+
+    def obiettivo(chiave, tipo):
+        o = evento.get(chiave) or {}
+        return numero(o.get("value")) if (o.get("unitType") or "").lower() == tipo else None
+
+    # la distanza può mancare (Garmin salva solo tempi): la ricaviamo dal nome
+    metri = obiettivo("completionTarget", "distance") or obiettivo("customGoal", "distance")
+    if not metri:
+        n = nome.lower()
+        metri = 21097.5 if "mezza" in n or "half" in n or "semi" in n else 42195 if "marat" in n or "marathon" in n else None
     return {
-        "nome": primo(evento, "eventName", "title", "name") or "Gara",
+        "nome": nome,
         "data": str(primo(evento, "date", "eventDate", "startDate") or "")[:10],
         "luogo": primo(evento, "location", "locationName"),
-        "km": round(distanza / 1000, 1) if distanza and distanza > 100 else distanza,
+        "km": round(metri / 1000, 1) if metri else None,
+        "obiettivo": obiettivo("customGoal", "time"),
     }
 
 
