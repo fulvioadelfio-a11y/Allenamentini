@@ -235,9 +235,17 @@ def forma(garmin, oggi):
     risultato["vo2"] = primo(vo2, "generic.vo2MaxPreciseValue", "generic.vo2MaxValue")
     risultato["vo2bici"] = primo(vo2, "cycling.vo2MaxPreciseValue", "cycling.vo2MaxValue")
 
+    # Subito dopo mezzanotte Garmin non ha ancora calcolato lo stato del giorno:
+    # in quel caso usiamo l'ultimo valore della serie delle ultime settimane.
     stato = prova("stato di allenamento", garmin.get_training_status, oggi) or {}
     dati = primo(stato, "mostRecentTrainingStatus.latestTrainingStatusData") or {}
     dispositivo = next(iter(dati.values()), {}) if isinstance(dati, dict) and dati else {}
+    if not primo(dispositivo, "trainingStatusFeedbackPhrase"):
+        inizio = (date.fromisoformat(oggi) - timedelta(days=14)).isoformat()
+        serie = prova("stato di allenamento recente", garmin.get_weekly_training_status, inizio, oggi) or {}
+        voci = [v for elenco in (primo(serie, "reportData") or {}).values() if isinstance(elenco, list)
+                for v in elenco if isinstance(v, dict) and v.get("trainingStatusFeedbackPhrase")]
+        dispositivo = max(voci, key=lambda v: v.get("calendarDate") or "", default={})
     risultato["stato"] = primo(dispositivo, "trainingStatusFeedbackPhrase")
     risultato["acuto"] = primo(dispositivo, "acuteTrainingLoadDTO.dailyTrainingLoadAcute")
     risultato["cronico"] = primo(dispositivo, "acuteTrainingLoadDTO.dailyTrainingLoadChronic")
