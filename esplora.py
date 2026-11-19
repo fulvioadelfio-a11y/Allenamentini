@@ -77,6 +77,21 @@ def main() -> None:
         risultati["ultima attivita"] = {"errore": f"{type(err).__name__}: {str(err)[:200]}"}
     prova("gara principale", g.get_primary_event)
 
+    # chilometri di corsa per mese dal 1° luglio
+    try:
+        corse = g.get_activities_by_date("2026-07-01", d(0), "running") or []
+        mesi = {}
+        for c in corse:
+            m = (c.get("startTimeLocal") or "")[:7]
+            x = mesi.setdefault(m, {"uscite": 0, "km": 0.0, "ore": 0.0, "piu_lunga_km": 0.0})
+            km = (c.get("distance") or 0) / 1000
+            x["uscite"] += 1; x["km"] += km; x["ore"] += (c.get("duration") or 0) / 3600
+            x["piu_lunga_km"] = max(x["piu_lunga_km"], km)
+        risultati["corsa dal 1 luglio"] = {k: {kk: round(vv, 1) for kk, vv in v.items()} for k, v in sorted(mesi.items())}
+        print("ok  corsa dal 1 luglio")
+    except Exception as err:  # noqa: BLE001
+        risultati["corsa dal 1 luglio"] = {"errore": f"{type(err).__name__}: {str(err)[:200]}"}
+
     chiave = os.getenv("GARMIN_PERSONAL_API_KEY")
     if chiave:
         t = requests.post(BASE + TOKEN_PATH, headers={"Authorization": f"ApiKey {chiave}"}, timeout=30).text.strip()
